@@ -19,6 +19,6 @@ import gdown
 def download_if_not_exist(url, output_directory, filename):
     path = os.path.join(output_directory, filename)
     if not os.path.exists(path):
-        gdown.download(url, path, quiet=False)
+        gdown.download(url, path, quiet=False, verify=False)
     return path
     

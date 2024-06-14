@@ -39,8 +39,9 @@ class LassoFeatureSelection(AbstractInferenceModel):
         seed: int = 0,
     ) -> List[Tuple]:
         edges = set()
+        gene_names = np.array(gene_names)
         for i in range(len(gene_names)):
-            selector = np.full(len(gene_names), True)
+            selector = np.full(len(gene_names), True, dtype=np.int32)
             selector[i] = False
             X = expression_matrix[:, selector]
             y = expression_matrix[:, i]

@@ -166,10 +166,14 @@ class Evaluator(object):
             "negative_mean_wasserstein": negative_mean_wasserstein
         }
 
-    def _evaluate_network(self, network_as_dict):
+    def _evaluate_network(self, network_as_dict, return_gt_graph=False):
+        """
+        When return_gt_graph is True returns subset of input network with true edges
+        """
         true_positive = 0
         false_positive = 0
         wasserstein_distances = []
+        gt_graph = []
         for parent in network_as_dict.keys():
             children = network_as_dict[parent]
             for child in children:
@@ -187,6 +191,9 @@ class Evaluator(object):
                     # Mannwhitney test rejects the hypothesis that the two distributions are similar
                     # -> parent has an effect on the child
                     true_positive += 1
+                    gt_graph.append((parent, child)) if return_gt_graph else None
                 else:
                     false_positive += 1
+        if return_gt_graph:
+            return gt_graph
         return true_positive, false_positive, wasserstein_distances

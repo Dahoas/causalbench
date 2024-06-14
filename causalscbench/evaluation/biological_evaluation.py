@@ -41,18 +41,39 @@ class Evaluator(object):
             if i in gene_names and j in gene_names and i != j:
                 edges.add((i, j))
         return list(edges)
+    
+    def make_undirected(self, network: List[Tuple]) -> List[Tuple]:
+        network_undirected = set()
+        for i, j in network:
+            network_undirected.add((i, j))
+            network_undirected.add((j, i))
+        return network_undirected
 
     def evaluate_network(self, network: List[Tuple], directed: bool = False) -> Dict:
-        true_positives = 0
+        tp, fp, fn = 0, 0, 0
+        ground_truth_subnetwork = self.ground_truth_subnetwork
         if not directed:
-            network_undirected = set()
-            for i, j in network:
-                network_undirected.add((i, j))
-                network_undirected.add((j, i))
-            network = network_undirected
+            network = self.make_undirected(network)
+            ground_truth_subnetwork = self.make_undirected(ground_truth_subnetwork)
         for edge in network:
-            if edge in self.ground_truth_subnetwork:
-                true_positives += 1
+            if edge in ground_truth_subnetwork:
+                tp += 1
+            else:
+                fp += 1
+        for edge in ground_truth_subnetwork:
+            if edge not in network:
+                fn += 1
+        tp = tp if directed else tp / 2
+        fp = fp if directed else fp / 2
+        fn = fn if directed else fn / 2
+        precision = tp / (tp + fp + 1e-5)
+        recall = tp / (tp + fn + 1e-5)
+        f1 = 2 * precision * recall / (precision + recall + 1e-5)
         return {
-            "true_positives": true_positives if directed else true_positives / 2,
+            "tp": tp,
+            "fp": fp,
+            "fn": fn,
+            "precision": precision,
+            "recall": recall,
+            "f1": f1,
         }

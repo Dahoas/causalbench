@@ -34,6 +34,8 @@ class DatasetSplitter(object):
             self.gene_names = list(arr["var_names"])
             interventions = arr["interventions"]
 
+        test_size = 0.2
+
         (
             self.expression_matrix_train,
             self.expression_matrix_test,
@@ -42,7 +44,7 @@ class DatasetSplitter(object):
         ) = model_selection.train_test_split(
             expression_matrix,
             interventions,
-            test_size=0.2,
+            test_size=test_size,
             random_state=0,
             stratify=interventions,
         )

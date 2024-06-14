@@ -42,6 +42,8 @@ from causalscbench.models.sparsest_permutations import (
 )
 from causalscbench.models.varsortability import Sortnregress
 
+from causalscbench.models.dummy import DummyModel
+
 DATASET_NAMES = [
     "weissmann_k562",
     "weissmann_rpe1",
@@ -90,7 +92,7 @@ class MainApp:
         inference_function_file_path: str = "",
         dataset_name: str = DATASET_NAMES[0],
         model_seed: int = 0,
-        training_regime: training_regimes.TrainingRegime = training_regimes.TrainingRegime.Interventional,
+        training_regime: training_regimes.TrainingRegime = training_regimes.TrainingRegime.Observational,
         partial_intervention_seed: int = 0,
         fraction_partial_intervention: float = 1.0,
         subset_data: float = 1.0,
@@ -98,6 +100,7 @@ class MainApp:
         max_path_length: int = -1,
         omission_estimation_size: int = 0,
         filter: bool = False,
+        path_to_network_csv: str = "",
     ):
         """
         Main full training pipeline.
@@ -130,6 +133,8 @@ class MainApp:
         self.exp_id = exp_id
         self.max_path_length = max_path_length
         self.filter = filter
+        self.path_to_network_csv = path_to_network_csv
+
         self.omission_estimation_size = omission_estimation_size
         self.check_false_omission_rate = omission_estimation_size > 0
         self.model = None
@@ -172,6 +177,8 @@ class MainApp:
             "chipseq": self.chipseq_evaluator,
             "pooled_biological_networks": self.pooled_biological_evaluator,
             "sortnregress": Sortnregress(),
+            # new model additions
+            "dummy": DummyModel(),
         }
         if self.model_name not in METHODS:
             raise NotImplementedError()
@@ -273,18 +280,26 @@ class MainApp:
             "max_path_length": self.max_path_length,
             "omission_estimation_size": self.omission_estimation_size,
             "filter": self.filter,
+            "path_to_network_csv": self.path_to_network_csv,
         }
         with open(os.path.join(self.output_directory, "arguments.json"), "w") as output:
             json.dump(arguments, output)
         start_time = time.time()
-        logging.info("Starting model training.")
-        output_network = self.model(
-            expression_matrix_train,
-            list(interventions_train),
-            gene_names,
-            self.training_regime,
-            self.model_seed,
-        )
+        if self.path_to_network_csv == "":
+            logging.info("Starting model training.")
+            output_network = self.model(
+                expression_matrix_train,
+                list(interventions_train),
+                gene_names,
+                self.training_regime,
+                self.model_seed,
+            )
+        else:
+            logging.info("Loading pre-computed network...")
+            output_network = pd.read_csv(self.path_to_network_csv).to_dict()
+            output_network = set([(parent, child) for parent, child in \
+                              zip(output_network["0"].values(), output_network["1"].values())])
+            
         logging.info("Model training finished.")
         end_time = time.time()
         logging.info("Evaluating model.")
