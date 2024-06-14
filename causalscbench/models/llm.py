@@ -36,9 +36,9 @@ If none of the candidates will have an effect on the target print <parents></par
         model_endpoint = "http://GCRAZGDL3051:8000/v1" if local else None
         max_num_tokens = 1024
         keys = dict(
-            AZURE_API_KEY="f8f587bf8d6346ac9bb3c9b2db4e1fb6",
-            AZURE_API_BASE="https://gcraoai7sw1.openai.azure.com/",
-            AZURE_API_VERSION="2024-02-01",
+            AZURE_API_KEY="",
+            AZURE_API_BASE="",
+            AZURE_API_VERSION="",
         )
         self.model = GPT(model_name=model_name,
                         model_endpoint=model_endpoint,
